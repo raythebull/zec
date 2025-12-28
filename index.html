@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZEC // OBSERVATORY</title>
+    <style>
+        :root {
+            --bg-color: #050505;
+            --term-green: #00ff41;
+            --term-dim: #008f11;
+            --alert: #ff3333;
+            --font-stack: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--term-green);
+            font-family: var(--font-stack);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            text-shadow: 0 0 5px var(--term-dim);
+            overflow-x: hidden;
+        }
+
+        /* CRT Scanline Effect */
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            z-index: 3;
+            border: 1px solid var(--term-dim);
+            padding: 2rem;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
+        }
+
+        header {
+            border-bottom: 2px dashed var(--term-dim);
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            margin: 0;
+            animation: glitch 1s linear infinite;
+        }
+
+        h1::before {
+            content: '> ';
+        }
+
+        .price-display {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .currency {
+            font-size: 1rem;
+            color: var(--term-dim);
+            vertical-align: middle;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .card {
+            border: 1px solid var(--term-dim);
+            padding: 1rem;
+            background: rgba(0, 20, 0, 0.3);
+        }
+
+        .card-label {
+            font-size: 0.8rem;
+            color: var(--term-dim);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .card-value {
+            font-size: 1.4rem;
+        }
+
+        .card-sub {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 0.2rem;
+        }
+
+        .footer-status {
+            margin-top: 2rem;
+            font-size: 0.7rem;
+            color: var(--term-dim);
+            text-align: right;
+            border-top: 1px solid var(--term-dim);
+            padding-top: 0.5rem;
+        }
+
+        .loader {
+            display: inline-block;
+            animation: blink 1s infinite;
+        }
+
+        /* Glitch Animation */
+        @keyframes glitch {
+            2%, 64% { transform: translate(2px,0) skew(0deg); }
+            4%, 60% { transform: translate(-2px,0) skew(0deg); }
+            62% { transform: translate(0,0) skew(5deg); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        @media (min-width: 600px) {
+            .grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .full-width {
+                grid-column: span 2;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>ZEC_NETWORK_OBSERVER</h1>
+        <div style="font-size: 0.8rem; margin-top: 0.5rem;">Secure connection established...</div>
+    </header>
+
+    <div class="card full-width" style="text-align: center; border-color: var(--term-green);">
+        <span class="card-label">Current Spot Price</span>
+        <div class="price-display" id="zec-price">
+            <span class="loader">INITIALIZING...</span>
+        </div>
+        <div class="card-sub" id="zec-mcap">MCAP: CALCULATING...</div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <span class="card-label">Target: Bitcoin Parity</span>
+            <div class="card-value" id="btc-target">
+                <span class="loader">...</span>
+            </div>
+            <div class="card-sub">Implied Price @ BTC Mcap</div>
+            <div class="card-sub" id="btc-ratio" style="color: var(--term-dim)"></div>
+        </div>
+
+        <div class="card">
+            <span class="card-label">Target: Gold Parity</span>
+            <div class="card-value" id="gold-target">
+                <span class="loader">...</span>
+            </div>
+            <div class="card-sub">Implied Price @ Gold Mcap</div>
+            <div class="card-sub" style="color: var(--term-dim)">Gold Est: ~$17.5T</div>
+        </div>
+        
+        <div class="card full-width">
+             <span class="card-label">Supply Metrics</span>
+             <div class="card-value" id="supply-data">---</div>
+             <div class="card-sub">Circulating Supply</div>
+        </div>
+    </div>
+
+    <div class="footer-status">
+        STATUS: ONLINE <br>
+        LAST_UPDATE: <span id="last-update">WAITING</span> <br>
+        <span style="opacity: 0.5">DATA: COINGECKO API (PUBLIC)</span>
+    </div>
+</div>
+
+<script>
+    // Configuration
+    const API_URL = "https://api.coingecko.com/api/v3/simple/price?ids=zcash,bitcoin&vs_currencies=usd&include_market_cap=true";
+    // Estimated Gold Market Cap in USD (Approx $17.5 Trillion)
+    const GOLD_MCAP = 17500000000000; 
+
+    const formatCurrency = (num) => {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num);
+    };
+
+    const formatBigNumber = (num) => {
+        if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+        if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+        if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+        return num.toLocaleString();
+    };
+
+    async function fetchData() {
+        const updateTime = document.getElementById('last-update');
+        const zecPriceEl = document.getElementById('zec-price');
+        const zecMcapEl = document.getElementById('zec-mcap');
+        const btcTargetEl = document.getElementById('btc-target');
+        const btcRatioEl = document.getElementById('btc-ratio');
+        const goldTargetEl = document.getElementById('gold-target');
+        const supplyEl = document.getElementById('supply-data');
+
+        try {
+            updateTime.innerText = "FETCHING PACKETS...";
+            
+            const response = await fetch(API_URL);
+            const data = await response.json();
+
+            if (!data.zcash || !data.bitcoin) throw new Error("Data stream interrupted");
+
+            const zecPrice = data.zcash.usd;
+            const zecMcap = data.zcash.usd_market_cap;
+            const btcMcap = data.bitcoin.usd_market_cap;
+            
+            // Calculate Circulating Supply (Mcap / Price)
+            // CoinGecko API simple endpoint doesn't give supply directly, so we derive it.
+            const zecSupply = zecMcap / zecPrice;
+
+            // Calculations
+            const priceAtBtcMcap = btcMcap / zecSupply;
+            const priceAtGoldMcap = GOLD_MCAP / zecSupply;
+            const multiplierBtc = (priceAtBtcMcap / zecPrice).toFixed(1);
+
+            // DOM Updates
+            zecPriceEl.innerHTML = formatCurrency(zecPrice);
+            zecMcapEl.innerText = `MCAP: ${formatCurrency(zecMcap)} (${formatBigNumber(zecMcap)})`;
+            
+            btcTargetEl.innerText = formatCurrency(priceAtBtcMcap);
+            btcRatioEl.innerText = `Upside: ${multiplierBtc}x`;
+            
+            goldTargetEl.innerText = formatCurrency(priceAtGoldMcap);
+            
+            supplyEl.innerText = `${zecSupply.toLocaleString(undefined, {maximumFractionDigits: 0})} ZEC`;
+
+            const now = new Date();
+            updateTime.innerText = now.toISOString().split('T')[1].split('.')[0] + ' UTC';
+
+        } catch (error) {
+            console.error(error);
+            zecPriceEl.innerHTML = "<span style='color:var(--alert)'>CONN_ERR</span>";
+            updateTime.innerText = "OFFLINE - RETRYING IN 30s";
+        }
+    }
+
+    // Initial load
+    fetchData();
+
+    // Refresh every 60 seconds to respect API limits while keeping it "live"
+    setInterval(fetchData, 60000);
+
+</script>
+</body>
+</html>
